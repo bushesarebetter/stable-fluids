@@ -95,9 +95,53 @@ def step(u, v, dens, visc, diff, dt, iters):
     return u, v, dens
 
 
+def add_sources(u, v, dens, t, dt, n):
+    # Three emitters orbit the centre and push dye tangentially, which spins up a vortex.
+    xs = (np.arange(n + 2) - 0.5) / n
+    X, Y = np.meshgrid(xs, xs, indexing="ij")
+    for k in range(3):
+        ang = 0.6 * t + 2 * np.pi * k / 3
+        cx, cy = 0.5 + 0.22 * np.cos(ang), 0.5 + 0.22 * np.sin(ang)
+        blob = np.exp(-((X - cx) ** 2 + (Y - cy) ** 2) / (2 * 0.02 ** 2))
+        # mostly tangential, slightly inward, wobbling over time so the vortex never settles
+        jet = ang + np.pi / 2 + 0.4 + 0.5 * np.sin(1.7 * t + k)
+        u += dt * 4.0 * np.cos(jet) * blob
+        v += dt * 4.0 * np.sin(jet) * blob
+        dens += dt * 6.0 * blob
 
 
+def render(dens, scale):
+    img = matplotlib.colormaps["inferno"](np.clip(dens[1:-1, 1:-1].T, 0, 1))[::-1, :, :3]
+    img = Image.fromarray((img * 255).astype(np.uint8))
+    return img.resize((img.width * scale, img.height * scale), Image.BILINEAR)
 
 
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--n", type=int, default=128)
+    ap.add_argument("--steps", type=int, default=360)
+    ap.add_argument("--dt", type=float, default=0.02)
+    ap.add_argument("--visc", type=float, default=1e-5)
+    ap.add_argument("--diff", type=float, default=1e-5)
+    ap.add_argument("--iters", type=int, default=20)
+    ap.add_argument("--out", default="fluid.gif")
+    ap.add_argument("--quick", action="store_true")
+    args = ap.parse_args()
+    if args.quick:
+        args.n, args.steps = 64, 150
+
+    n = args.n
+    u, v, dens = (np.zeros((n + 2, n + 2)) for _ in range(3))
+    frames = []
+    for s in range(args.steps):
+        add_sources(u, v, dens, s * args.dt, args.dt, n)
+        u, v, dens = step(u, v, dens, args.visc, args.diff, args.dt, args.iters)
+        dens *= 0.995
+        if s % 3 == 0:
+            frames.append(render(dens, max(1, 256 // n)))
+    frames[0].save(args.out, save_all=True, append_images=frames[1:], duration=40, loop=0)
+    print(f"{args.steps} steps on a {n}x{n} grid, wrote {args.out} ({len(frames)} frames)")
 
 
+if __name__ == "__main__":
+    main()
