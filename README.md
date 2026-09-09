@@ -1,3 +1,5 @@
+[![Tests](https://github.com/bushesarebetter/stable-fluids/actions/workflows/tests.yml/badge.svg)](https://github.com/bushesarebetter/stable-fluids/actions/workflows/tests.yml)
+
 # Stable Fluids
 
 A 2D implementation of Jos Stam's [Stable Fluids](https://www.dgp.toronto.edu/public_user/stam/reality/Research/pdf/ns.pdf) (SIGGRAPH 1999) in plain numpy. Three emitters circle the middle of a closed box and push dye sideways, and the solver turns that into a slowly churning vortex.
