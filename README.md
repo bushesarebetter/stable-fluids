@@ -1,22 +1,28 @@
-[![Tests](https://github.com/bushesarebetter/stable-fluids/actions/workflows/tests.yml/badge.svg)](https://github.com/bushesarebetter/stable-fluids/actions/workflows/tests.yml)
-
 # Stable Fluids
+
+[![Tests](https://github.com/bushesarebetter/stable-fluids/actions/workflows/tests.yml/badge.svg)](https://github.com/bushesarebetter/stable-fluids/actions/workflows/tests.yml)
 
 A 2D implementation of Jos Stam's [Stable Fluids](https://www.dgp.toronto.edu/public_user/stam/reality/Research/pdf/ns.pdf) (SIGGRAPH 1999) in plain numpy. Three emitters circle the middle of a closed box and push dye sideways, and the solver turns that into a slowly churning vortex.
 
+[Preview](#preview) · [Method](#method) · [Setup](#setup) · [Run](#run) · [Tests](#test) · [Results](#results)
+
+## Preview
+
 ![dye density](fluid.gif)
+
+## Method
 
 Each step diffuses the velocity, projects it to be divergence-free, advects it along itself, projects again, then diffuses and advects the dye. Advection is semi-Lagrangian with vectorized bilinear lookups. Diffusion and the pressure Poisson solve both use red-black Gauss-Seidel, which updates half the grid at a time so each sweep is one numpy expression.
 
 ## Setup
 
-```
+```bash
 pip install -r requirements.txt
 ```
 
 ## Run
 
-```
+```bash
 python stable_fluids.py           # 128x128, 360 steps, about 35 s, writes fluid.gif
 python stable_fluids.py --quick   # 64x64, 150 steps
 ```
@@ -25,7 +31,13 @@ Grid size, time step, viscosity, diffusion and solver iterations are command-lin
 
 ## Test
 
+Install pytest in addition to the simulation dependencies:
+
+```bash
+pip install pytest
 ```
+
+```bash
 python -m pytest -q
 ```
 
